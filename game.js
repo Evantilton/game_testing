@@ -29,10 +29,36 @@ function drawMatrix(matrix, offset) {
     })
 };
 
-function update() {
+let dropCounter = 0;
+let dropInterval = 1000; 
+
+let lastTime = 0;
+function update(time = 0) {
+    const deltaTime = time - lastTime;
+    lastTime = time;
+
+    dropCounter += deltaTime;
+    if (dropCounter > dropInterval) {
+        player.pos.y++;
+        dropCounter = 0;
+    }
     draw();
     requestAnimationFrame(update);
 }
+
+
+document.addEventListener('keydown', event => {
+    console.log(event);
+    if (event.keyCode === 37) {
+        player.pos.x--;
+    } else if (event.keyCode === 39) {
+        player.pos.x++;
+    } else if (event.keyCode === 40 ) {
+        player.pos.y++;
+    } else if (event.keyCode === 38) {
+        player.pos.y--;
+    } 
+});
 
 const player = {
     pos: { x: 28, y: 50 },
