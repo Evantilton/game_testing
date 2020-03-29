@@ -9,12 +9,66 @@ const matrix = [
     [1, 1, 1,],
 ];
 
-const enemyMatrix = [
-    [1, 0, 1,],
-    [0, 1, 0,],
-    [1, 0, 1,],
-]
 
+function createPiece(type) {
+    if (type === 'T') {
+        return [
+            [0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0],
+            [0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0],
+            [0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0],
+            [0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0],
+        ];
+    } else if (type === 'O') {
+        return [
+            [2, 2],
+            [2, 2],
+        ];
+    } else if (type === 'L') {
+        return [
+            [0, 3, 0],
+            [0, 3, 0],
+            [0, 3, 3],
+        ];
+    } else if (type === 'J') {
+        return [
+            [0, 4, 0],
+            [0, 4, 0],
+            [4, 4, 0],
+        ];
+    }  else if (type === 'I') {
+        return [
+            [0, 5, 0, 0],
+            [0, 5, 0, 0],
+            [0, 5, 0, 0],
+            [0, 5, 0, 0],
+        ];
+    }  else if (type === 'S') {
+        return [
+            [0, 6, 6],
+            [6, 6, 0],
+            [0, 0, 0],
+        ];
+    } else if (type === 'Z') {
+        return [
+            [7, 7, 0],
+            [0, 7, 7],
+            [0, 0, 0],
+        ];
+    } 
+} 
+
+function enemyReset() {
+    const pieces = 'TJLOSZI';
+    enemy.matrix = createPiece(pieces[pieces.length * Math.random() | 0])
+   enemy.pos.y = 0;
+   enemy.pos.x = (arena[0].length / 2 | 0) -
+                   (enemy.matrix[0].length / 2 | 0);
+   if (collide(arena,player)) {
+       arena.forEach(row => row.fill(0));
+       player.score = 0;
+       updateScore();
+   }
+}
 
 function collide(arena, player) {
     const [m,o] = [player.matrix, player.pos];
@@ -84,16 +138,15 @@ function merge(arena, player) {
 
 let dropCounter = 0;
 let dropInterval = 100; 
-
 let lastTime = 0;
+
 function update(time = 0) {
     const deltaTime = time - lastTime;
     lastTime = time;
 
     dropCounter += deltaTime;
     if (dropCounter > dropInterval) {
-        enemy.pos.y++;
-        dropCounter = 0;
+        enemyDrop();
     }
     draw();
     requestAnimationFrame(update);
@@ -104,7 +157,7 @@ function playerVert(dir) {
         player.pos.y -= dir; 
     }
 }
-function playerHorz(dir) {
+function playerHorzon(dir) {
     player.pos.x += dir;
     if (collide(arena, player)) {
         player.pos.x -= dir; 
@@ -113,6 +166,20 @@ function playerHorz(dir) {
 function enemyDrop() {
     enemy.pos.y++;
     dropCounter = 0;
+    if (enemy.pos.y > 60) {
+        enemyReset();
+    }
+}
+function playerDrop() {
+    player.pos.y++;
+    if (collide(arena, player)) {
+        player.pos.y--;
+        merge(arena, player);
+        playerReset();
+        arenaSweep();
+        updateScore();
+    }
+    dropCounter = 0;
 }
 
 
@@ -120,10 +187,10 @@ document.addEventListener('keydown', event => {
     console.log(event);
     //left
     if (event.keyCode === 37) {
-        playerHorz(-1);
+        playerHorzon(-1);
         //right
     } else if (event.keyCode === 39) {
-        playerHorz(1);
+        playerHorzon(1);
         //down
     } else if (event.keyCode === 40 ) {
         playerVert(1);
@@ -134,8 +201,8 @@ document.addEventListener('keydown', event => {
 });
 const arena = createMatrix(60,60);
 const enemy = {
-    pos: { x: 28, y: 50},
-    matrix: enemyMatrix,
+    pos: { x: 30, y: -20},
+    matrix: createPiece('T'),
 }
 
 const player = {
